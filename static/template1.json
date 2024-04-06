@@ -1,0 +1,35 @@
+{
+    "id" : "1",
+    "name" : "Jugendgottesdienst",
+    "description" : "Plakate für die Jugendgottesdienste das Grüne Zelt im Format DinA4.",
+    "config" : [
+        {
+            "background" : "dasgruenezelt.jpg",
+            "title" : "Das Grüne Zelt - Jugendgottesdienst",
+            "date" : [ {
+                "color" : "255,255,255",
+                "position" : [ 130, 1110 ],
+                "font" : "Roboto",
+                "size" : 50
+            }],
+            "location" : [ {
+                "color" : "255,255,255",
+                "position" : [ 130, 1000 ],
+                "font" : "Roboto",
+                "size" : 50
+            }],
+            "extra" : [ {
+                "color" : "255,255,255",
+                "position" : [ 130, 300 ],
+                "font" : "Roboto",
+                "size" : 50
+
+            }],
+            "imprint" : [ {
+                "color" : "255,255,255",
+                "position" : [ 130, 1300 ],
+                "font" : "Roboto",
+                "size" : 20
+            }]
+ }    ]
+}
