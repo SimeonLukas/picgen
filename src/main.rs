@@ -3,15 +3,18 @@ extern crate rocket;
 extern crate imageproc;
 
 use ab_glyph::FontArc;
+use image::imageops::blur;
 use image::imageops::FilterType::Nearest;
 use image::imageops::{overlay, rotate180_in};
 use image::io::Reader as ImageReader;
+use image::DynamicImage::*;
 use image::GenericImage;
 use image::{ImageBuffer, Pixel, RgbImage, Rgba, RgbaImage};
 use imageproc::drawing::{draw_text_mut, Canvas};
 use imageproc::geometric_transformations::*;
 use rocket::fs::NamedFile;
 use rocket::http::ext;
+use rocket::response::content;
 use std::io::Read;
 use std::path::Path;
 
@@ -69,13 +72,13 @@ async fn index(
         // create layer
         let mut layer = RgbaImage::from_pixel(width, height, Rgba([255, 255, 255, 0]));
         // draw text by json values
-        let scale: f32 = content["size"].to_string().parse().unwrap();
+        let scale: f32 = content["size"].to_string().parse().unwrap_or(50.0);
         let r: u8 = content["color"][0].to_string().parse().unwrap_or(255);
         let g: u8 = content["color"][1].to_string().parse().unwrap_or(255);
         let b: u8 = content["color"][2].to_string().parse().unwrap_or(255);
         let a: u8 = content["color"][3].to_string().parse().unwrap_or(255);
-        let x = content["position"][0].to_string().parse().unwrap();
-        let y = content["position"][1].to_string().parse().unwrap();
+        let x = content["position"][0].to_string().parse().unwrap_or(0);
+        let y = content["position"][1].to_string().parse().unwrap_or(0);
         let font = content["font"].to_string();
         let font = match font.as_str() {
             "Roboto" => roboto.clone(),
@@ -107,7 +110,53 @@ async fn index(
             &text,
         );
 
-        // overlay layer on background
+        // blur layer
+        if content["shadow"].is_array() {
+            let mut shadowlayer = RgbaImage::from_pixel(width, height, Rgba([255, 255, 255, 0]));
+
+            let shadow = content["shadow"].as_array().unwrap();
+            let xoffset = shadow[0].to_string().parse().unwrap_or(0);
+            let yoffset = shadow[1].to_string().parse().unwrap_or(0);
+            let sigma = shadow[2].to_string().parse().unwrap_or(0.0);
+            let color = shadow[3].as_array().unwrap();
+            let color = [
+                color[0].to_string().parse().unwrap_or(0),
+                color[1].to_string().parse().unwrap_or(0),
+                color[2].to_string().parse().unwrap_or(0),
+                color[3].to_string().parse().unwrap_or(0),
+            ];
+            draw_text_mut(
+                &mut shadowlayer,
+                image::Rgba(color),
+                x + xoffset,
+                y + yoffset,
+                scale,
+                &font,
+                &text,
+            );
+
+            if content["rotate"].is_u64() {
+                let theta: u64 = content["rotate"].to_string().parse().unwrap_or(0);
+                let theta = theta as f32 * std::f32::consts::PI / 180.0;
+                shadowlayer = rotate(
+                    &shadowlayer,
+                    (x as f32, y as f32),
+                    theta,
+                    Interpolation::Bicubic,
+                    Rgba([0, 0, 0, 0]),
+                );
+            }
+
+            let shadowlayer = blur(&shadowlayer, sigma);
+            overlay(&mut image, &shadowlayer, 0, 0);
+        }
+
+        if content["rotate"].is_u64() {
+            let theta: u64 = content["rotate"].to_string().parse().unwrap_or(0);
+            let theta = theta as f32 * std::f32::consts::PI / 180.0;
+            layer = rotate(&layer, (x as f32, y as f32), theta, Interpolation::Bicubic, Rgba([0, 0, 0, 0]));
+        }
+
         overlay(&mut image, &layer, 0, 0);
     }
 
