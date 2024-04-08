@@ -6,11 +6,11 @@
         "background": "dasgruenezelt.jpg",
         "title": "Das Grüne Zelt - Jugendgottesdienst",
         "content": [{
-                "color": [0,255,0,215],
-                "position": [130, 1105],
+                "color": [0,255,0,255],
+                "position": [250, 200],
                 "font": "Roboto",
-                "size": 60,
-                "shadow": [1,2,1,[255,255,0,255]],
+                "size": 1000,
+                "shadow": [0,190,0,[255,255,0,255]],
                 "rotate": 0
             },
             {
@@ -22,7 +22,9 @@
                 "color": [255,255,255,255],
                 "position": [130, 300],
                 "font": "Roboto",
-                "size": 50
+                "size": 20,
+                "rotate": 90
+
 
             },{
                 "color": [255,255,255,255],

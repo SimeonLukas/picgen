@@ -15,8 +15,10 @@ use imageproc::geometric_transformations::*;
 use rocket::fs::NamedFile;
 use rocket::http::ext;
 use rocket::response::content;
+use std::fmt::Arguments;
 use std::io::Read;
 use std::path::Path;
+use std::env;
 
 #[get("/?<file>&<i1>&<i2>&<i3>&<i4>&<i5>&<i6>&<i7>&<i8>&<i9>&<i10>")]
 async fn index(
@@ -173,5 +175,17 @@ async fn index(
 
 #[launch]
 fn rocket() -> _ {
-    rocket::build().mount("/", routes![index])
+    for argument in std::env::args() {
+        // get port
+        if argument == "--port" {
+            let port: u16 = std::env::args().nth(2).unwrap().parse().unwrap();
+            std::env::set_var("PORT", port.to_string());
+        }
+    }
+
+    let port: u16 = std::env::var("PORT").unwrap_or("2468".to_string()).parse().unwrap();
+
+    rocket::build()
+    .configure(rocket::Config::figment().merge(("port", port)))
+    .mount("/", routes![index])
 }
